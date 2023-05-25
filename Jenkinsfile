@@ -15,6 +15,7 @@ pipeline {
         DEPLOY_DIR='pd-ansible'
         DEPLOY_USER='ubuntu'
         DEPLOY_HOST='localhost'
+        WEBHOOK_URL = credentials('TEAMS_WEBHOOK')
     }
     stages {
         stage('Build and publish - PROD ') {
@@ -68,7 +69,10 @@ pipeline {
     }
     post {
         always {  
-	        sh 'docker logout'     
+	        sh 'docker logout'
+            office365ConnectorSend webhookUrl: "${env.WEBHOOK_URL}",
+            message: "Job: `${env.JOB_NAME}` - #${env.BUILD_NUMBER}: ${env.BUILD_URL}",
+            status: "${currentBuild.result}"  
         }      
         cleanup {
             cleanWs()
